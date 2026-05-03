@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Globe Express</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --gold:#e4ae30;
+  --speed:920ms;
+  --ease:cubic-bezier(0.77,0,0.175,1);
+}
+
+html,body{
+  width:100%;height:100%;
+  overflow:hidden;
+  font-family:'Poppins',sans-serif;
+  background:#0d0d0d;
+}
+
+/* ─── BACKGROUNDS ────────────────────────────────────── */
+#bg{
+  position:fixed;inset:0;z-index:0;
+}
+.bg-slide{
+  position:absolute;inset:0;
+  background-size:cover;
+  background-position:center;
+  opacity:0;
+  transform:scale(1.07);
+  transition:opacity var(--speed) var(--ease), transform 1.5s var(--ease);
+  will-change:opacity,transform;
+}
+.bg-slide.active{opacity:1;transform:scale(1);}
+/* Left-heavy dark overlay */
+.bg-slide::after{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    linear-gradient(95deg,
+      rgba(0,0,0,0.75) 0%,
+      rgba(0,0,0,0.40) 40%,
+      rgba(0,0,0,0.08) 100%),
+    linear-gradient(to top,rgba(0,0,0,0.50) 0%,transparent 48%);
+}
+
+/* ─── HEADER ─────────────────────────────────────────── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 42px;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:'Oswald',sans-serif;
+  font-size:0.88rem;font-weight:500;
+  letter-spacing:0.24em;text-transform:uppercase;
+  color:#fff;text-decoration:none;
+}
+.logo svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.5;flex-shrink:0;}
+.nav-links{display:flex;align-items:center;gap:34px;}
+.nav-links a{
+  font-family:'Poppins',sans-serif;
+  font-size:0.74rem;font-weight:500;
+  letter-spacing:0.14em;text-transform:uppercase;
+  color:rgba(255,255,255,0.60);text-decoration:none;
+  position:relative;padding-bottom:5px;
+  transition:color 0.3s;
+}
+.nav-links a.active{color:#fff;}
+.nav-links a.active::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:2px;background:var(--gold);border-radius:2px;
+}
+.nav-links a:hover{color:#fff;}
+.nav-right{display:flex;align-items:center;gap:16px;margin-left:8px;}
+.nav-right button{background:none;border:none;cursor:pointer;display:flex;align-items:center;}
+.nav-right svg{width:16px;height:16px;stroke:rgba(255,255,255,0.72);fill:none;stroke-width:1.7;}
+
+/* ─── LEFT CONTENT ───────────────────────────────────── */
+.content{
+  position:fixed;left:42px;top:50%;
+  transform:translateY(-44%);
+  z-index:100;max-width:390px;
+}
+.c-dash{
+  width:26px;height:2px;background:var(--gold);
+  margin-bottom:12px;
+  opacity:0;transform:translateX(-14px);
+  transition:opacity .5s var(--ease),transform .5s var(--ease);
+}
+.c-sub{
+  font-size:0.78rem;font-weight:400;color:#fff;
+  margin-bottom:8px;
+  opacity:0;transform:translateY(16px);
+  transition:opacity .55s var(--ease) .07s,transform .55s var(--ease) .07s;
+}
+.c-title{
+  font-family:'Oswald',sans-serif;
+  font-size:clamp(3.2rem,6vw,5.5rem);
+  font-weight:700;line-height:.93;
+  text-transform:uppercase;color:#fff;
+  margin-bottom:20px;
+  opacity:0;transform:translateY(22px);
+  transition:opacity .6s var(--ease) .14s,transform .6s var(--ease) .14s;
+}
+.c-desc{
+  font-size:0.70rem;font-weight:300;line-height:1.74;
+  color:rgba(255,255,255,.60);
+  margin-bottom:26px;
+  opacity:0;transform:translateY(16px);
+  transition:opacity .55s var(--ease) .21s,transform .55s var(--ease) .21s;
+}
+.c-btns{
+  display:flex;align-items:center;gap:12px;
+  opacity:0;transform:translateY(14px);
+  transition:opacity .55s var(--ease) .28s,transform .55s var(--ease) .28s;
+}
+.btn-play{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--gold);border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:transform .3s,filter .3s;
+}
+.btn-play:hover{transform:scale(1.1);filter:brightness(1.12);}
+.btn-play svg{width:12px;height:12px;fill:#fff;margin-left:2px;}
+.btn-disc{
+  padding:11px 24px;
+  border:1.5px solid rgba(255,255,255,.45);
+  border-radius:50px;background:transparent;
+  font-family:'Poppins',sans-serif;
+  font-size:0.62rem;font-weight:500;
+  letter-spacing:0.17em;text-transform:uppercase;
+  color:#fff;cursor:pointer;
+  transition:background .3s,border-color .3s;
+}
+.btn-disc:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.8);}
+
+.content.show .c-dash,
+.content.show .c-sub,
+.content.show .c-title,
+.content.show .c-desc,
+.content.show .c-btns{opacity:1;transform:none;}
+
+/* ─── CARD STRIP ─────────────────────────────────────── */
+/*
+  Positioned so cards start at roughly 38% from left
+  and extend to the right, aligned at the bottom area
+  just above the controls — matching the reference screenshots.
+*/
+#cards{
+  position:fixed;
+  left:38%;right:0;
+  bottom:108px;
+  z-index:100;
+  display:flex;
+  align-items:flex-end;
+  gap:14px;
+  padding-right:42px;
+  overflow:visible;
+}
+
+.card{
+  position:relative;
+  flex-shrink:0;
+  width:176px;height:236px;
+  border-radius:16px;
+  overflow:hidden;
+  cursor:pointer;
+  /* default: slightly shrunk */
+  transform:scale(.965) translateY(0px);
+  opacity:.80;
+  box-shadow:0 8px 32px rgba(0,0,0,.50);
+  transition:
+    transform .65s var(--ease),
+    opacity .65s var(--ease),
+    box-shadow .4s;
+}
+/* First card is the "next up" — lifted and full opacity */
+.card:first-child{
+  transform:scale(1) translateY(-16px);
+  opacity:1;
+  box-shadow:0 16px 48px rgba(0,0,0,.65);
+}
+.card:hover{
+  transform:scale(1.03) translateY(-12px) !important;
+  opacity:1 !important;
+  box-shadow:0 20px 52px rgba(0,0,0,.70) !important;
+}
+
+.card-img{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  transition:transform .6s var(--ease);
+}
+.card:hover .card-img{transform:scale(1.07);}
+
+.card-grad{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,
+    rgba(0,0,0,.80) 0%,
+    rgba(0,0,0,.18) 55%,
+    transparent 100%);
+}
+
+.card-info{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px 13px 13px;
+}
+.card-bar{
+  width:18px;height:1.5px;
+  background:var(--gold);margin-bottom:6px;
+}
+.card-loc{
+  font-size:.52rem;font-weight:400;
+  letter-spacing:.07em;color:rgba(255,255,255,.70);
+  margin-bottom:3px;
+}
+.card-name{
+  font-family:'Oswald',sans-serif;
+  font-size:.84rem;font-weight:600;
+  line-height:1.16;text-transform:uppercase;color:#fff;
+}
+
+/* Card entrance from right */
+.card{
+  opacity:0;transform:translateX(50px) scale(.97);
+}
+.card.in{
+  opacity:.80;transform:scale(.965) translateY(0px);
+}
+.card.in:first-child{
+  opacity:1;transform:scale(1) translateY(-16px);
+}
+
+/* ─── CONTROLS ───────────────────────────────────────── */
+#ctrls{
+  position:fixed;
+  bottom:40px;left:38%;
+  z-index:100;
+  display:flex;align-items:center;gap:14px;
+}
+.btn-nav{
+  width:44px;height:44px;
+  border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.32);
+  background:rgba(255,255,255,.07);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:background .3s,border-color .3s,transform .2s;
+  flex-shrink:0;
+}
+.btn-nav svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+.btn-nav:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.65);}
+.btn-nav:active{transform:scale(.92);}
+
+.prog-wrap{
+  width:150px;height:2px;
+  background:rgba(255,255,255,.18);
+  border-radius:2px;overflow:hidden;
+}
+.prog-fill{
+  height:100%;background:var(--gold);
+  border-radius:2px;width:0%;
+  transition:width .35s linear;
+}
+
+/* ─── COUNTER ────────────────────────────────────────── */
+#counter{
+  position:fixed;bottom:34px;right:42px;
+  z-index:100;
+  font-family:'Oswald',sans-serif;
+  font-size:5rem;font-weight:700;
+  color:#fff;line-height:1;
+  letter-spacing:-.02em;
+}
+
+/* ─── LOADER ─────────────────────────────────────────── */
+#loader{
+  position:fixed;inset:0;background:#080808;
+  z-index:999;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;
+  transition:opacity .7s ease;
+}
+#loader.hide{opacity:0;pointer-events:none;}
+.ld-ring{
+  width:36px;height:36px;
+  border:2px solid rgba(228,174,48,.18);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.ld-lbl{
+  font-family:'Oswald',sans-serif;font-size:.62rem;
+  letter-spacing:.3em;text-transform:uppercase;
+  color:rgba(255,255,255,.28);
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── HAMBURGER BUTTON ───────────────────────────────── */
+.nav-hamburger{
+  display:none;
+  flex-direction:column;justify-content:center;align-items:center;
+  width:36px;height:36px;
+  background:none;border:none;cursor:pointer;
+  gap:5px;flex-shrink:0;z-index:300;
+  position:relative;
+}
+.nav-hamburger span{
+  display:block;width:22px;height:2px;
+  background:rgba(255,255,255,0.80);
+  border-radius:2px;
+  transition:transform .35s var(--ease), opacity .25s, width .3s;
+}
+.nav-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.nav-hamburger.open span:nth-child(2){opacity:0;width:0;}
+.nav-hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* ─── MOBILE MENU DRAWER ─────────────────────────────── */
+.mobile-nav-drawer{
+  display:none;
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(8,8,8,0.97);
+  z-index:250;
+  flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:32px;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s var(--ease);
+}
+.mobile-nav-drawer.open{opacity:1;pointer-events:all;}
+.mobile-nav-drawer a{
+  font-family:'Oswald',sans-serif;
+  font-size:1.95rem;font-weight:500;
+  letter-spacing:0.14em;text-transform:uppercase;
+  color:rgba(255,255,255,0.60);text-decoration:none;
+  transition:color .25s;
+}
+.mobile-nav-drawer a.active,
+.mobile-nav-drawer a:hover{color:#fff;}
+.mobile-nav-drawer a.active{color:var(--gold);}
+.mobile-nav-drawer-icons{
+  display:flex;align-items:center;gap:22px;margin-top:8px;
+}
+.mobile-nav-drawer-icons button{
+  background:none;border:none;cursor:pointer;display:flex;align-items:center;
+}
+.mobile-nav-drawer-icons svg{
+  width:20px;height:20px;stroke:rgba(255,255,255,0.72);fill:none;stroke-width:1.7;
+}
+
+/* ─── MOBILE BREAKPOINT ──────────────────────────────── */
+@media(max-width:768px){
+  /* Show hamburger, hide desktop nav */
+  .nav-hamburger{display:flex;}
+  .nav-links{display:none !important;}
+  .nav-right{display:none !important;}
+  .mobile-nav-drawer{display:flex;}
+
+  /* Header padding */
+  header{padding:16px 20px;}
+
+  /* Left content: move upward so cards remain visible below */
+  .content{
+    left:20px;right:20px;
+    top:92px;
+    bottom:auto;
+    transform:none;
+    max-width:100%;
+  }
+  .c-sub{
+    font-size:0.82rem;
+    margin-bottom:10px;
+  }
+  .c-title{
+    font-size:clamp(2.35rem,10vw,3.5rem);
+    margin-bottom:14px;
+  }
+  .c-desc{
+    font-size:0.86rem;
+    line-height:1.55;
+    max-width:92%;
+    margin-bottom:18px;
+  }
+  .c-btns{
+    gap:10px;
+  }
+
+  /* Cards: keep clearly below content */
+  #cards{
+    left:0;right:0;
+    bottom:92px;
+    padding:0 20px;
+    gap:10px;
+    overflow-x:auto;
+    overflow-y:visible;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  #cards::-webkit-scrollbar{display:none;}
+  .card{
+    width:118px;height:158px;
+    flex-shrink:0;
+  }
+
+  /* Controls: bottom-left */
+  #ctrls{
+    left:20px;
+    bottom:26px;
+  }
+
+  /* Counter: smaller, bottom-right */
+  #counter{
+    font-size:3rem;
+    bottom:18px;
+    right:20px;
+  }
+}
+
+@media(max-width:400px){
+  .content{top:86px;}
+  .c-title{font-size:clamp(1.9rem,9.5vw,2.7rem);}
+  .c-desc{font-size:0.80rem;line-height:1.5;max-width:100%;}
+  .card{width:104px;height:146px;}
+}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="ld-ring"></div><div class="ld-lbl">Globe Express</div></div>
+
+<!-- Backgrounds -->
+<div id="bg"></div>
+
+<!-- Header -->
+<header>
+  <a class="logo" href="#">
+    <svg viewBox="0 0 20 20">
+      <circle cx="10" cy="10" r="8.5"/>
+      <ellipse cx="10" cy="10" rx="3.8" ry="8.5"/>
+      <line x1="1.5" y1="10" x2="18.5" y2="10"/>
+      <line x1="2.5" y1="6" x2="17.5" y2="6"/>
+      <line x1="2.5" y1="14" x2="17.5" y2="14"/>
+    </svg>
+    Globe Express
+  </a>
+  <div style="display:flex;align-items:center;gap:0">
+    <div class="nav-links">
+      <a href="#" class="active">Home</a>
+      <a href="#">Holidays</a>
+      <a href="#">Destinations</a>
+      <a href="#">Flights</a>
+      <a href="#">Offers</a>
+      <a href="#">Contacts</a>
+    </div>
+    <div class="nav-right">
+      <button><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
+      <button><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></button>
+    </div>
+    <!-- Mobile hamburger -->
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Nav Drawer -->
+<nav class="mobile-nav-drawer" id="mobileDrawer">
+  <a href="#" class="active">Home</a>
+  <a href="#">Holidays</a>
+  <a href="#">Destinations</a>
+  <a href="#">Flights</a>
+  <a href="#">Offers</a>
+  <a href="#">Contacts</a>
+  <div class="mobile-nav-drawer-icons">
+    <button><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
+    <button><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></button>
+  </div>
+</nav>
+
+<!-- Left Content -->
+<div class="content" id="content">
+  <div class="c-dash"></div>
+  <div class="c-sub"  id="cSub"></div>
+  <h1  class="c-title" id="cTitle"></h1>
+  <p   class="c-desc"  id="cDesc"></p>
+  <div class="c-btns">
+    <button class="btn-play"><svg viewBox="0 0 12 14"><polygon points="0,0 12,7 0,14"/></svg></button>
+    <button class="btn-disc">Discover Location</button>
+  </div>
+</div>
+
+<!-- Cards -->
+<div id="cards"></div>
+
+<!-- Controls -->
+<div id="ctrls">
+  <button class="btn-nav" id="btnPrev"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <button class="btn-nav" id="btnNext"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+  <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
+</div>
+
+<!-- Counter -->
+<div id="counter" id="counter"><span id="cNum">01</span></div>
+
+<script>
+/* ─── DATA ─────────────────────────────────────────────────────── */
+const SLIDES = [
+  {
+    sub:'Graubünden · Switzerland', title:'Saint\nAntönien',
+    desc:'Saint Antönien is a peaceful alpine village in eastern Switzerland, known for dramatic mountain scenery, hiking trails, and winter ski touring in the Alps.',
+    bg:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=85&auto=format&fit=crop',
+    th:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80&auto=format&fit=crop'
+  },
+  {
+    sub:'Chūbu Region · Japan', title:'Nagano\nPrefecture',
+    desc:'Nagano Prefecture is famous for the Japanese Alps, historic temples, hot springs, and ski resorts, offering one of Japan’s best mountain travel experiences.',
+    bg:'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1920&q=85&auto=format&fit=crop',
+    th:'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=500&q=80&auto=format&fit=crop'
+  },
+  {
+    sub:'Sahara Desert · Morocco', title:'Merzouga\nDunes',
+    desc:'Merzouga is one of Morocco’s best-known desert gateways, celebrated for the towering Erg Chebbi dunes, camel treks, and spectacular Sahara sunsets.',
+    bg:'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1920&q=85&auto=format&fit=crop',
+    th:'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=500&q=80&auto=format&fit=crop'
+  },
+  {
+    sub:'California · United States', title:'Yosemite\nNational Park',
+    desc:'Yosemite National Park is world-famous for granite cliffs, giant sequoias, waterfalls, and Yosemite Valley, making it one of America’s most iconic landscapes.',
+    bg:'https://images.unsplash.com/photo-1562310503-a918c4c61e38?w=1920&q=85&auto=format&fit=crop',
+    th:'https://images.unsplash.com/photo-1562310503-a918c4c61e38?w=500&q=80&auto=format&fit=crop'
+  },
+  {
+    sub:'Andalusia · Spain', title:'Los Lances\nBeach',
+    desc:'Los Lances Beach in Tarifa is a long Atlantic shoreline known for golden sand, strong winds, and its popularity for kitesurfing and windsurfing.',
+    bg:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=85&auto=format&fit=crop',
+    th:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=80&auto=format&fit=crop'
+  },
+  {
+    sub:'Cappadocia · Turkey', title:'Göreme\nValley',
+    desc:'Göreme Valley is at the heart of Cappadocia and is known for fairy chimneys, cave dwellings, rock-cut churches, and famous sunrise balloon views.',
+    bg:'https://images.unsplash.com/photo-1563784462041-5f97ac9523dd?w=1920&q=85&auto=format&fit=crop',
+    th:'https://images.unsplash.com/photo-1563784462041-5f97ac9523dd?w=500&q=80&auto=format&fit=crop'
+  }
+];
+const N = SLIDES.length;
+let cur = 0, busy = false, autoTmr = null;
+const DELAY = 5000;
+
+/* ─── REFS ──────────────────────────────────────────────────────── */
+const bgEl    = document.getElementById('bg');
+const cardsEl = document.getElementById('cards');
+const content = document.getElementById('content');
+const cSub    = document.getElementById('cSub');
+const cTitle  = document.getElementById('cTitle');
+const cDesc   = document.getElementById('cDesc');
+const cNum    = document.getElementById('cNum');
+const progFill= document.getElementById('progFill');
+const loader  = document.getElementById('loader');
+
+/* ─── BUILD BG SLIDES ───────────────────────────────────────────── */
+const bgEls = SLIDES.map((s,i)=>{
+  const d = document.createElement('div');
+  d.className='bg-slide'+(i===0?' active':'');
+  d.style.backgroundImage=`url(${s.bg})`;
+  bgEl.appendChild(d);
+  return d;
+});
+
+/* ─── RENDER CARDS ──────────────────────────────────────────────── */
+function renderCards(){
+  cardsEl.innerHTML='';
+  // Show 4 cards: next 4 slides
+  for(let i=1;i<=4;i++){
+    const idx=(cur+i)%N;
+    const s=SLIDES[idx];
+    const c=document.createElement('div');
+    c.className='card';
+    c.innerHTML=`
+      <div class="card-img" style="background-image:url(${s.th})"></div>
+      <div class="card-grad"></div>
+      <div class="card-info">
+        <div class="card-bar"></div>
+        <div class="card-loc">${s.sub}</div>
+        <div class="card-name">${s.title.replace('\n','<br>')}</div>
+      </div>`;
+    c.addEventListener('click',()=>{ if(!busy) goTo(idx); });
+    cardsEl.appendChild(c);
+    // Staggered slide-in from right
+    const delay=50+(i-1)*75;
+    setTimeout(()=>c.classList.add('in'), delay);
+  }
+}
+
+/* ─── UPDATE LEFT CONTENT ───────────────────────────────────────── */
+function updateContent(idx){
+  content.classList.remove('show');
+  void content.offsetWidth;
+  cSub.textContent  = SLIDES[idx].sub;
+  cTitle.innerHTML  = SLIDES[idx].title.replace('\n','<br>');
+  cDesc.textContent = SLIDES[idx].desc;
+  cNum.textContent  = String(idx+1).padStart(2,'0');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>content.classList.add('show')));
+}
+
+/* ─── PROGRESS ──────────────────────────────────────────────────── */
+function resetProgress(){
+  progFill.style.transition='none';
+  progFill.style.width='0%';
+  void progFill.offsetWidth;
+  progFill.style.transition=`width ${DELAY}ms linear`;
+  progFill.style.width='100%';
+}
+
+/* ─── GOTO ──────────────────────────────────────────────────────── */
+function goTo(next){
+  if(busy||next===cur) return;
+  busy=true;
+  clearTimeout(autoTmr);
+  bgEls[cur].classList.remove('active');
+  cur=next;
+  bgEls[cur].classList.add('active');
+  updateContent(cur);
+  renderCards();
+  resetProgress();
+  setTimeout(()=>{busy=false;scheduleAuto();},960);
+}
+const goNext=()=>goTo((cur+1)%N);
+const goPrev=()=>goTo((cur-1+N)%N);
+function scheduleAuto(){clearTimeout(autoTmr);autoTmr=setTimeout(goNext,DELAY);}
+
+/* ─── CONTROLS ──────────────────────────────────────────────────── */
+document.getElementById('btnNext').addEventListener('click',goNext);
+document.getElementById('btnPrev').addEventListener('click',goPrev);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight')goNext();
+  if(e.key==='ArrowLeft')goPrev();
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)dx<0?goNext():goPrev();});
+
+/* ─── INIT ──────────────────────────────────────────────────────── */
+let shown=false;
+function reveal(){
+  if(shown)return; shown=true;
+  loader.classList.add('hide');
+  setTimeout(()=>loader.style.display='none',750);
+  updateContent(0);
+  renderCards();
+  resetProgress();
+  scheduleAuto();
+}
+
+// Preload first 2 bgs then reveal
+let loaded=0;
+SLIDES.slice(0,2).forEach(s=>{
+  const img=new Image();
+  img.onload=img.onerror=()=>{loaded++;if(loaded>=2)reveal();};
+  img.src=s.bg;
+});
+setTimeout(reveal,3000); // Fallback
+
+/* ─── MOBILE NAV TOGGLE ──────────────────────────────── */
+const hamburger = document.getElementById('navHamburger');
+const drawer    = document.getElementById('mobileDrawer');
+hamburger.addEventListener('click', () => {
+  const isOpen = drawer.classList.toggle('open');
+  hamburger.classList.toggle('open', isOpen);
+  // Prevent background scroll when menu open
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+});
+// Close drawer when a link is tapped
+drawer.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    drawer.classList.remove('open');
+    hamburger.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
+</script>
+</body>
+</html>
